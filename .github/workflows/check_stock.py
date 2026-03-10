@@ -67,7 +67,16 @@ def check_stock(symbol, x_days, y_percent):
     # 5. 判斷是否觸發警示，並印出結果
     alert = "ALERT" if drop <= -float(y_percent) else "not triggered"
     print(f"{symbol}: {drop:.2f}% in {x_days} days (threshold: {y_percent}%) - {alert}")
+    
+    # 條件 1：漲跌幅絕對值 >= y_percent
+    hit_threshold = (drop < 0) and (abs(drop) >= float(y_percent))
+    # 條件 2：現在是整點
+    is_full_hour = (now.minute == 0)
 
+    if not (hit_threshold or is_full_hour):
+        print(f"{symbol}: 變動未超過門檻且非整點，不送出 LINE 訊息")
+        return None
+    
     # 6. 處理收盤價歷史資料，取最近 x_days 筆
     close_data = data["Close"].iloc[-x_days:]
     start_date = close_data.index[0].strftime("%m-%d")  # 起始日期
