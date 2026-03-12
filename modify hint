@@ -1,0 +1,261 @@
+下面先幫你把「跟取得股價 API 呼叫 / 資料處理」有關的部分整理出來，並標示哪些地方之後要因應「台股 / 美股用不同 API」來改。
+
+---
+
+## 一、跟「取得股價資料」直接相關的函式與程式碼
+
+### 1. `download_close_prices(symbol: str, x_days: int)`
+
+```python
+def download_close_prices(symbol: str, x_days: int):
+    return yf.download(
+        symbol,
+        period=f"{x_days + DEFAULT_LOOKBACK_PADDING_DAYS}d",
+        progress=False,
+        auto_adjust=False,
+    )["Close"].squeeze()
+```
+
+**用途**  
+- 這是唯一真正「對外抓股價」的地方，目前是直接用 `yfinance`（美股友善，台股是透過 `.TW`）。
+
+**之後要改的點**  
+- 你要改成：  
+  - 若是台股 symbol（例如 `0050.TW`），呼叫「台股 API」  
+  - 若是美股 symbol（例如 `VOO`、`VT`），呼叫「美股 API / 或維持 yfinance」  
+- 而且要讓回傳型態仍然是「日期 index 的 close 價 Series」，讓下面的程式不用變太多。
+
+---
+
+### 2. `build_stock_bubble(rule: Rule)`
+
+```python
+def build_stock_bubble(rule: Rule) -> dict[str, Any] | None:
+    # 決定時區並取得 now
+    tz, market_name = get_market_timezone(rule.symbol)
+    now = datetime.datetime.now(tz)
+
+    # 先用「時間區間」判斷是否有可能是開盤時間
+    if not is_market_open(rule.symbol, now):
+        return None
+
+    # 只下載一次 close_series，後面全部重用
+    close_series = download_close_prices(rule.symbol, rule.x_days)
+    print(f"{rule.symbol} close_series: {close_series}")
+
+    # 最近一筆日線資料日期是否為今日，否則視為尚未開盤或休市，跳過
+    if not has_today_data(close_series, tz, rule.symbol):
+        return None
+
+    if len(close_series) < rule.x_days + 1:
+        print(f"{rule.symbol}: not enough data")
+        return None
+
+    today = float(close_series.iloc[-1].item())
+    past = float(close_series.iloc[-rule.x_days].item())
+    drop = (today - past) / past * 100
+
+    # 條件 1：漲跌幅絕對值 >= y_percent
+    hit_threshold = (drop < 0) and (abs(drop) >= float(rule.y_percent))
+    # 條件 2：關盤後 隔一段特定時間 發最終報表
+    is_today_final_report = is_today_final_report_time(market_name, now)
+
+    if not (hit_threshold or is_today_final_report):
+        print(f"{rule.symbol}: 變動未超過門檻且非最終報表時間，不送出 LINE 訊息")
+        return None
+
+    alert = "ALERT" if drop <= -rule.y_percent else "not triggered"
+    print(f"{rule.symbol}: {drop:.2f}% in {rule.x_days} days "
+          f"(threshold: {rule.y_percent}%) - {alert}")
+
+    history_series = close_series.iloc[-rule.x_days :]
+    start_date = history_series.index[0].strftime("%m-%d")
+    end_date = history_series.index[-1].strftime("%m-%d")
+    history_text = format_history(history_series)
+
+    return build_bubble(
+        rule.symbol, start_date, end_date, rule.x_days,
+        drop, rule.y_percent, history_text,
+        is_final_report=is_today_final_report,
+    )
+```
+
+**跟股價資料相關的部分**  
+- `close_series = download_close_prices(...)` ← 這裡實際拿到股價資料  
+- `has_today_data(close_series, tz, rule.symbol)` ← 檢查最後一筆資料日期  
+- `len(close_series) < rule.x_days + 1` ← 資料量判斷  
+- `today` / `past` / `drop` 計算漲跌幅  
+- `history_series`、`history_text` 組歷史文字
+
+**重點：這裡不直接呼叫外部 API，所有資料都來自 `download_close_prices`。你未來只要改 `download_close_prices`，這裡大多數邏輯可以共用。**
+
+---
+
+### 3. `has_today_data(close_series, tz, symbol: str)`
+
+```python
+def has_today_data(close_series, tz, symbol: str) -> bool:
+    if close_series.empty:
+        print(f"{symbol}: close_series 為空，跳過")
+        return False
+
+    now = datetime.datetime.now(tz)
+    last_bar_time = close_series.index[-1]
+
+    # 對齊時區
+    if last_bar_time.tzinfo is None:
+        last_bar_time = tz.localize(last_bar_time)
+    else:
+        last_bar_time = last_bar_time.astimezone(tz)
+
+    last_bar_date = last_bar_time.date()
+    today_date = now.date()
+
+    if last_bar_date != today_date:
+        print(
+            f"{symbol}: 最近一筆日線資料日期為 {last_bar_date} "
+            f"（今日 {today_date}），視為尚未開盤或休市，跳過"
+        )
+        return False
+
+    return True
+```
+
+**用途**  
+- 不直接呼叫 API，而是對你從 API 拿回來的 `close_series`（日 K）做檢查。  
+- 要求：index 最後一筆能轉成該市場的當地時間，且日期 = 今天。
+
+**如果你換 API**  
+- 確保新 API 回來的資料 index 是 `DatetimeIndex`（或你先轉好），這個函式就能繼續用。
+
+---
+
+### 4. `format_history(close_series)`
+
+```python
+def format_history(close_series) -> str:
+    lines = []
+    for idx, price in zip(close_series.index, close_series.values):
+        lines.append(f"{idx.strftime('%m-%d')}: {float(price):.2f}")
+    return "\n".join(lines)
+```
+
+**用途**  
+- 純整理已取得的股價資料，沒有呼叫外部 API，但依賴 `close_series` 的型態 (日期 index + 數值)。
+
+---
+
+## 二、跟「市場 / 時區 / 開盤判斷」相關（跟 API 選擇有關）
+
+這些不是抓價 API，但會影響你「台股用哪個 API、美股用哪個 API」的分流邏輯：
+
+### 1. `get_market_timezone(symbol: str)`
+
+```python
+def get_market_timezone(symbol: str) -> tuple[pytz.BaseTzInfo, str]:
+    if symbol.endswith(".TW"):
+        return pytz.timezone("Asia/Taipei"), "台股"
+    else:
+        return pytz.timezone("America/New_York"), "美股"
+```
+
+**之後可以用這邏輯決定**：
+- 台股：用台股專用 API，例如 TwStock / TSE API / 你自建 API  
+- 美股：用 yfinance 或其他美股 API
+
+你可以在 `download_close_prices` 裡面先呼叫這個函式判斷市場，再分流到不同 API。
+
+---
+
+### 2. `is_market_open(symbol: str, now: datetime.datetime)`
+
+```python
+def is_market_open(symbol: str, now: datetime.datetime) -> bool:
+    tz, market_name = get_market_timezone(symbol)
+
+    if market_name == "台股":  # 台股
+        session_start = datetime.time(8, 0)
+        session_end = datetime.time(15, 0)
+    else:  # 美股
+        session_start = datetime.time(8, 0)
+        session_end = datetime.time(17, 0)
+
+    local_now = now.astimezone(tz)
+    if not (session_start <= local_now.time() <= session_end):
+        print(f"{symbol} ({market_name}) 非交易時段，跳過")
+        return False
+    return True
+```
+
+**用途**  
+- 在 `build_stock_bubble` 前面先粗略判斷「是不是在交易時段」，不在就根本不去抓資料。
+
+**跟改 API 的關係**  
+- 不直接影響 API 選擇，但會讓你在非交易時間完全不打新 API（可以省 quota）。
+
+---
+
+### 3. `is_today_final_report_time(market_name: str, now: datetime.datetime)`
+
+```python
+def is_today_final_report_time(market_name: str, now: datetime.datetime):
+    if market_name == "台股":
+        return now.hour == 14 and now.minute == 5
+    else:
+        return now.hour == 16 and now.minute == 45
+```
+
+- 這與送報表時間有關，跟股價 API 無直接關聯，但與「市場（台股/美股）」有關。
+
+---
+
+## 三、跟股價 API 無關 / 可忽略部分
+
+這些不是抓股價，而是其他邏輯：
+
+- `Rule` dataclass
+- `fetch_rules` / `parse_rule`：抓你自己 config API 的設定，不是股價 API。
+- `send_line`：呼叫 LINE API。
+- `build_bubble`, `build_carousel`（在 `flex_msg_tpl` 模組）：只是把資料組成 Flex Message。
+- `main`：流程控制，逐條 rule 呼叫 `build_stock_bubble`。
+
+---
+
+## 四、你要改成「台股 / 美股不同 API」的建議切點
+
+保持 `Symbol` 和 `Rule` 結構不變的前提下，最乾淨的做法：
+
+### 1. 集中改在 `download_close_prices`
+
+```python
+def download_close_prices(symbol: str, x_days: int):
+    tz, market_name = get_market_timezone(symbol)
+
+    if market_name == "台股":
+        # TODO: 呼叫台股 API，回傳類似：
+        # index: datetime (當地 or UTC 都可，只要 has_today_data 能處理)
+        # values: 收盤價
+        # 範例假碼：
+        # return fetch_tw_stock_close_series(symbol, x_days + DEFAULT_LOOKBACK_PADDING_DAYS)
+        ...
+    else:
+        # 美股維持用 yfinance 或換別的都可以，但回傳型態要一致
+        return yf.download(
+            symbol,
+            period=f"{x_days + DEFAULT_LOOKBACK_PADDING_DAYS}d",
+            progress=False,
+            auto_adjust=False,
+        )["Close"].squeeze()
+```
+
+後面這些函式就都可以重用，不用動太多：
+
+- `build_stock_bubble`
+- `has_today_data`
+- `format_history`
+- `is_market_open`
+- `is_today_final_report_time`
+
+---
+
+如果你接下來有具體的台股 API / 美股 API 規格（回傳 JSON 長怎樣），可以貼出來，我可以幫你寫一個共通的 `fetch_tw_stock_close_series` / `fetch_us_stock_close_series`，把資料整理成現在程式預期的 `Series` 格式。
