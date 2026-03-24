@@ -1,0 +1,17 @@
+viewport（假設 1200px）
+│
+└── body（padding: 32px 16px）→ 可用寬 1168px
+      │
+      └── #app（max-width: 900px）→ 實際寬 900px
+            │
+            └── .settings-card（padding: 24px）→ 內容寬 852px
+                  │
+                  └── .form-grid（1fr 1fr, gap:16px）→ 852px
+                        │
+                        ├── .form-field → 約 418px
+                        │     └── .p-inputnumber（width:100%）→ 418px
+                        │           └── .p-inputtext（width:100%）→ 418px
+                        │
+                        └── .form-field → 約 418px
+                              └── .p-inputnumber（width:100%）→ 418px
+                                    └── .p-inputtext（width:100%）→ 418px
