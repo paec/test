@@ -15,3 +15,50 @@ viewport（假設 1200px）
                         └── .form-field → 約 418px
                               └── .p-inputnumber（width:100%）→ 418px
                                     └── .p-inputtext（width:100%）→ 418px
+
+===
+
+優先順序可以這樣排：
+
+先比重要性：
+!important
+再比 specificity（你前面問的權重 a,b,c,d）
+如果 1、2 都一樣 → 比「在樣式表中出現的先後順序」：
+同一個元素、同一個屬性：
+「較後面宣告」的會覆蓋前面的。
+
+specificity 規則（從高到低）：
+
+a：是否為行內樣式
+style="..." → a = 1
+其他 → a = 0
+b：ID 選擇器的數量
+#header → b = 1
+#header #nav → b = 2
+c：class / attribute / pseudo-class 的數量
+.item → c = 1
+[type="text"] → c = 1
+:hover, :focus, :nth-child(...) → c += 1
+d：元素 / pseudo-element 的數量
+div, span, h1 → d += 1
+::before, ::after → d += 1
+比大小時，先比 a，a 大的贏；a 相同再比 b，以此類推。
+
+幾個例子
+div p span
+ID: 0
+class/attr/pseudo-class: 0
+element: 3
+→ (0, 0, 0, 3)
+.card .title
+ID: 0
+class: 2
+element: 0
+→ (0, 0, 2, 0)
+#main .title span
+ID: 1
+class: 1
+element: 1
+→ (0, 1, 1, 1)
+行內樣式：<div style="color:red">
+→ (1, 0, 0, 0) 完勝其他選擇器
