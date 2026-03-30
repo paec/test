@@ -27,3 +27,40 @@
 | 概念              | 說明 |
 |-------------------|------|
 | **inline-block**  | 同時具有 inline 與 block 的特性：在排版上像 inline 一樣與文字排在同一行、參與同一個 line box；又像 block 一樣可以設定寬高，padding / margin 在垂直方向具有實質空間效果，能把所在那一行的 line box 撐高並推開上下內容。 |
+
+1. **Inline box 的大小**
+
+   以 `display: inline` 的元素為例，它的「有效高度」主要由：  
+   - 該元素的 `font-size`  
+   - 該元素的 `line-height`  
+
+   決定，也就是所謂的「行高區域」。  
+
+   而：  
+   - 垂直 `padding` / `border`：只改變它視覺上的盒子，  
+     不會參與「這一行有多高」的計算。  
+
+   所以 inline box 可以視覺上變得比這一行高（蓋到上下行），  
+   但這不代表那一行的 line box 高度變大。
+
+---
+
+2. **Line box 的大小**
+
+   一個 line box（某一行）高度是瀏覽器算出來的：  
+   - 主要依賴這一行裡各個 inline‑level 元素的 `line-height`（加上字型 metrics）  
+   - 同一行裡如果有人 `line-height` 特別大，那一行就會被它拉高  
+   - 外層 block 設的 `line-height` 只是預設值，遇到更高的子元素會被「超車」  
+
+   垂直 `padding` / `margin` 對純 `inline` 不會改變 line box 高度；  
+   對 `inline-block` / `block` 則會，因為它們的盒子高度 = `content + padding + border`。
+
+---
+
+3. **一句話總結**
+
+   **Inline box 的「視覺大小」**（尤其是垂直 `padding` / `border`）  
+   可以跟它所在行的 **line box 高度** 不一樣。  
+
+   行的高度由各元素的 `line-height`（和內容盒子高度，對 `inline-block` / `block` 而言）決定，  
+   而不是簡單等於「那個元素看起來有多高」。
