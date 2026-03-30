@@ -29,6 +29,27 @@
 |-------------------|------|
 | **inline-block**  | 同時具有 inline 與 block 的特性：在排版上像 inline 一樣與文字排在同一行、參與同一個 line box；又像 block 一樣可以設定寬高，padding / margin 在垂直方向具有實質空間效果，能把所在那一行的 line box 撐高並推開上下內容。 |
 
+---
+
+0. **inline-level box 的完整分類**
+
+   inline-level box（統稱）
+   ├── inline box        → display: inline 專屬
+   │                       （span, a, 匿名文字節點）
+   ├── inline-block box  → display: inline-block
+   └── replaced element  → img, video, iframe 等
+      - 預設 display: inline，但實際行為近似 inline-block，
+      - 垂直 padding / border 會撐高 line box，可設寬高
+      - 額外特性：有資源本身的固有尺寸（intrinsic size）作為預設尺寸， CSS 未指定時自動使用原始寬高 <br><br>
+
+   ⚠️ 容易混淆的地方：
+   inline box ≠ inline-level box
+   inline box 是 inline-level box 的子集，
+   display: inline 才叫 inline box，
+   inline-block / replaced element 都不是 inline box。
+
+---
+
 1. **Inline box 的大小**
 
    以 display: inline 的元素為例，它的「行高參與值」（用於 line box 計算的高度）由：
@@ -54,6 +75,12 @@
    - 純 inline box      → 高度由 line-height 決定
    - inline-block box   → 高度由 content + padding + border 決定
    （margin 在盒子外部，不計入 line box 高度）
+   - replaced element → 高度由以下順序決定：
+      1. CSS 明確設定的 height
+      2. 只設 width → 依原始比例計算高度
+      3. 都沒設 → 使用資源本身的原始尺寸（intrinsic size）
+      行為同 inline-block，會實際撐高 line box。
+   （img, video 等，行為同 inline-block）<br> <br>
 
    同一行裡如果有人特別高，那一行就會被它撐開。
    外層 block 設的 line-height 只是預設值，
