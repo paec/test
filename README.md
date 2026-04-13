@@ -3,10 +3,13 @@
   * 用github codespaces (用github的算力)，點擊綠色的 「Code」 按鈕 -> 「Codespaces」 -> 「Create codespace on master」。
      * 可以安裝 gituhb copilot
 
-在Github可以打開網頁版VS?
+- 在Github可以打開網頁版VS?
 
 
+---
+2026/4/13
 
+- 先用Plan模式讓AI生成修改計畫.md ，再用agent模式開始依照規格書實作，效果通常比較好?
 - PlayWright寫前端測試 (類似cypress，但playwright是直接用python語法寫，cypress是js/ts)
 
 - conext7
