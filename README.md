@@ -9,6 +9,7 @@
 ---
 2026/4/13
 
+- Issues可以當作repo的工作單?
 - 先用Plan模式讓AI生成修改計畫.md ，再用agent模式開始依照規格書實作，效果通常比較好?
 - PlayWright寫前端測試 (類似cypress，但playwright是直接用python語法寫，cypress是js/ts)
 
