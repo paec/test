@@ -4,3 +4,9 @@
      * 可以安裝 gituhb copilot
 
 在Github可以打開網頁版VS?
+
+
+
+- PlayWright寫前端測試 (類似cypress，但playwright是直接用python語法寫，cypress是js/ts)
+
+- conext7
