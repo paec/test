@@ -1,0 +1,21 @@
+[前端（UI）]
+  └─ 輸入 / 顯示
+
+[服務層（FastAPI / Flask）]
+  ├─ HTTP / Auth / Session
+  ├─ 取舊 state / 存新 state
+  └─ 呼叫 graph.invoke()
+
+[LangGraph（Agent 層）]
+  ├─ 業務流程
+  ├─ 決策邏輯
+  ├─ LLM 推理
+  ├─ Tool 使用
+  └─ Loop / Condition
+  
+  LangGraph Agent
+  = State（資料）
+  + Node（對 State 做事）
+  + Edge（流程）
+  + Conditional Edge（決策）
+  + Loop（反覆推理 / 行動）
