@@ -18,4 +18,11 @@
   + Node（對 State 做事）
   + Edge（流程）
   + Conditional Edge（決策）
-  + Loop（反覆推理 / 行動）
+  + Loop（反覆推理 / 行動） (用 edge 指回前面某個 node，就形成反覆執行的結構（例如 LLM in loop）) 
+         think (LLM)
+       → act (tool)
+       → observe
+       → think (LLM)
+       → ...
+       → final result
+
