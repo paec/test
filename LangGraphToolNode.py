@@ -206,5 +206,19 @@ def run_example() -> None:
     # 7. 再次進入 agent 節點（tools → agent 邊）
     # 8. LLM 看到工具結果，生成最終回答
     # 9. should_continue 返回 "end"，流程結束
-    result_state = graph.invoke(initial_state)\n    
-    # 打印最終結果\n    # 輸出每條消息的類型和內容\n    # 會看到消息流的完整演化過程：\n    # 1. SystemMessage - 角色定義\n    # 2. HumanMessage - 用戶提問\n    # 3. AIMessage - LLM決定調用工具\n    # 4. ToolMessage - 工具執行結果\n    # 5. AIMessage - LLM最終回答\n    for message in result_state["messages"]:\n        print(type(message).__name__, \":\", message.content)\n\n\nif __name__ == \"__main__\":\n    # 執行示例\n    run_example()
+    result_state = graph.invoke(initial_state)    
+    # 打印最終結果
+    # 輸出每條消息的類型和內容
+    # 會看到消息流的完整演化過程：
+    # 1. SystemMessage - 角色定義
+    # 2. HumanMessage - 用戶提問
+    # 3. AIMessage - LLM決定調用工具
+    # 4. ToolMessage - 工具執行結果
+    # 5. AIMessage - LLM最終回答
+    for message in result_state["messages"]:
+        print(type(message).__name__, ":", message.content)
+
+
+if __name__ == "__main__":
+    # 執行示例
+    run_example()
