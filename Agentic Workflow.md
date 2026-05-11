@@ -32,7 +32,10 @@
                 └── 無 agentic 需求 → LangGraph 純 workflow
 ```
 > 有 workflow 需求，即使沒有 agentic 需求，LangGraph 本身就值得導入，純粹作為 workflow 管理工具使用也合理
->
+
+>現代良好設計是：保留「大的 workflow 作為骨架」，
+把部分 subflow 重構成「agent node」處理不確定性；
+而高風險決策與不可逆操作，仍然必須透過 HIL 介入，共同構成完整 workflow。
 ***
 
 ## 1️⃣ Agentic AI 與傳統 LLM 應用的本質差異
