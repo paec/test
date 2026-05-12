@@ -24,5 +24,5 @@
        5. 代為執行：本地 MCP Server 接收到標準 Input 後，解析參數並代為操作 雲端 API 或 地端資源（如資料庫、檔案系統）。
        6. 結果回填 (任務閉環)：MCP Server 將工具執行的原始 Output 整理成 MCP 規範的 JSON 格式 傳回；由 VS Code 將其包裝成新的 Context Prompt 餵回給模型，完成具備即時數據能力的任務閉環。
         
-- conext7
+- conext7 
   
