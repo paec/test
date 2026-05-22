@@ -163,3 +163,154 @@ Tools = Agent 的手腳
 Skill 通常進 system prompt/context
 Tool 通常以 tool schema 提供給 LLM
 ```
+
+
+以下是整理後的精簡版 Markdown 筆記：
+
+***
+
+# 🧠 Agent Workflow 與 LLM 推理機制
+
+## ✅ 核心流程
+
+```text
+Skill 注入 → 指導 workflow
+Tool call → 執行步驟
+Tool result → 更新 context
+LLM → 推理下一步
+```
+
+***
+
+## ❗關鍵觀念
+
+LLM **不會真正追蹤 workflow 進度**，而是：
+
+```text
+根據當前 context 推測現在應該在哪個步驟
+```
+
+***
+
+## ✅ 正確模型
+
+LLM 並沒有：
+
+```text
+state machine / step counter
+```
+
+實際運作是：
+
+```text
+觀察 context → 預測下一個合理行動
+```
+
+***
+
+## 🔄 運作機制拆解
+
+### 1. Skill 注入（提供理想流程）
+
+```text
+1. grep code
+2. 找 bug
+3. 執行測試
+4. 提供建議
+```
+
+→ 僅為指引（非強制流程）
+
+***
+
+### 2. LLM 推理當前步驟
+
+```text
+User: review repo
+```
+
+```text
+推測 → 應該先做 step 1
+```
+
+→ 呼叫 tool
+
+***
+
+### 3. Tool result 注入
+
+```text
+grep → found auth.py line 52
+```
+
+***
+
+### 4. 下一輪推理
+
+Context 包含：
+
+```text
+- Skill workflow
+- User request
+- Tool result
+```
+
+LLM 推論：
+
+```text
+step 1 已完成 → 應進入 step 2
+```
+
+👉 這是「推理」，非「狀態記錄」
+
+***
+
+## 🔥 核心本質
+
+```text
+LLM 不是在執行 workflow
+而是在「模擬 workflow」
+```
+
+***
+
+## 🧩 抽象模型
+
+```text
+Skill       = 理想流程
+Tool result = 當前狀況
+LLM         = 推理下一步
+```
+
+***
+
+## ⚠️ 限制
+
+由於沒有顯式狀態控制，可能出現：
+
+*   跳步
+*   重複步驟
+*   順序錯誤
+*   忽略步驟
+
+***
+
+## ✅ 若需要確定性流程
+
+需引入：
+
+```text
+- State machine（如 LangGraph）
+- explicit step 欄位
+- structured planner
+```
+
+***
+
+## ✅ 一句話總結
+
+```text
+LLM 並不追蹤 workflow 進度，
+而是根據 context 動態推理「現在應該做什麼」。
+```
+
