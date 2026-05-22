@@ -164,9 +164,6 @@ Skill 通常進 system prompt/context
 Tool 通常以 tool schema 提供給 LLM
 ```
 
-
-以下是整理後的精簡版 Markdown 筆記：
-
 ***
 
 # 🧠 Agent Workflow 與 LLM 推理機制
@@ -262,15 +259,6 @@ step 1 已完成 → 應進入 step 2
 ```
 
 👉 這是「推理」，非「狀態記錄」
-
-***
-
-## 🔥 核心本質
-
-```text
-LLM 不是在執行 workflow
-而是在「模擬 workflow」
-```
 
 ***
 
