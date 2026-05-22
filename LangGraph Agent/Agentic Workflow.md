@@ -332,9 +332,8 @@ Claude Agent SDK 是一個可自主決策的 agent runtime。
   - tool calling
   - context management
   - task execution
-<br>
+
 * 它是 autonomous agent。
-<br>
 * 可以當作 langgraph 中其中一個 Agent Node， 取代自己重造 Create_react_agent。
 
 
