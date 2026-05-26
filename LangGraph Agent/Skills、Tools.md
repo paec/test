@@ -300,3 +300,110 @@ LLM 並不追蹤 workflow 進度，
 而是根據 context 動態推理「現在應該做什麼」。
 ```
 
+***
+
+# 🧠 Agent Skills 載入架構
+
+## 核心結論
+
+把 `SKILL.md` 直接塞進 **System Prompt**，雖然可行，但只適合少量流程。  
+真正可規模化的 **Skills 架構**，關鍵在於：
+
+* **漸進式揭露（Progressive Disclosure）**
+* **動態檢索 / 觸發**
+* **按需注入（On-demand Injection）**
+* **資源延遲載入（Lazy Loading）**
+  
+也就是：
+> **先只讓模型知道有哪些技能，等需要時再載入完整說明書。**
+  
+## 為什麼不能全部直接放 System Prompt？
+
+ 1. **Token 成本過高**
+ 2. **Prompt Pollution（脈絡污染)**
+     * 模型注意力被分散
+     * 無關規則可能干擾當前任務
+     * 輸出品質與穩定性下降
+***
+
+## 🚀 成熟平台的做法：三層動態載入
+
+## 1. 先只載入輕量 Metadata
+
+平台啟動時，不讀完整 `SKILL.md`，只讀 YAML frontmatter，例如：
+
+```yaml
+name: git-commit-helper
+description: 分析 git diff 並生成 commit 訊息；當使用者要求 commit / PR / 檢視變更時觸發
+```
+
+作用：
+
+* 讓 LLM 知道「有這個技能」
+* 也知道「什麼時候該用」
+* 不需要先吃完整內容
+
+***
+
+## 2. 需要時才注入完整 Skill 內容
+
+當使用者說：
+
+> 幫我把目前修改 commit 上去
+
+流程會變成：
+
+1. LLM 根據 metadata 判斷要用哪個 skill
+2. 系統動態讀取對應 `SKILL.md`
+3. 把完整步驟注入到當前對話脈絡
+4. LLM 再依照該 skill 的規範執行任務
+
+***
+
+## 3. Skill 內部資源也延遲載入
+
+如果 `SKILL.md` 還引用：
+
+* checklist
+* template
+* script
+* 範本文檔
+
+那也不用一開始全讀。  
+只有執行到那一步時，才去讀取相關檔案。
+
+***
+
+## ⚒️ 最實用的實作方式：把 Skill 當成 Tool 來載入
+
+可以設計一個工具，例如：
+
+```json
+load_agent_skill(skill_name="git-commit-helper")
+```
+
+### 執行流程
+
+1. **系統啟動時**
+   * 掃描所有 Skills
+   * 只整理 Skill 名稱與描述
+   * 生成給 LLM 可見的 Tool Schema / Skill 清單
+
+2. **第一輪**
+   * 使用者提出需求
+   * LLM 判斷該呼叫哪個 skill
+   * 觸發 `load_agent_skill(...)`
+
+3. **後端處理**
+   * 讀取對應 `SKILL.md`
+   * 在下一輪把完整內容追加進 context / system prompt / tool result
+
+4. **第二輪**
+   * LLM 取得該技能完整 SOP
+   * 精準執行任務
+
+***
+
+## 一句話總結
+
+> **真正可規模化的 Agent Skills，不是把所有規則寫死在 System Prompt，而是透過 metadata + tool routing + on-demand injection，讓模型只在需要時讀取對應技能。**
