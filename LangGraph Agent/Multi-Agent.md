@@ -1,5 +1,3 @@
-
-
 > **一句話先總結**  
 > **LLM (no agent)** = 單次/少量回合的模型呼叫  
 > **Agent** = 有 loop、會用工具、會自己多步完成任務  
@@ -20,10 +18,6 @@
 * 多輪上下文通常由你自己傳回去維持；Anthropic Messages API 明確是 stateless，要你每次送完整歷史。 
 * 適合單步、明確、短任務。
 
-**代表性工具 / 介面**
-
-* OpenAI **Responses API**（直接 model requests）
-* Anthropic **Messages API**（direct model prompting） 
 
 **典型例子**
 
@@ -45,11 +39,6 @@
 * 有基本 state / context 管理。Anthropic Agent SDK 明確寫「same tools, agent loop, and context management that power Claude Code」；OpenAI Agents SDK 則有 sessions / state / tracing。 
 * 通常也內建常見工具（讀檔、改檔、跑指令、MCP/函數工具）。 
 
-**代表性工具**
-
-* **Claude Code**：官方 coding agent，可讀 repo、改檔、跑測試、寫 PR。
-* **Claude Agent SDK**：把 Claude Code 的工具、agent loop、context 管理做成可程式化 SDK。
-* **OpenAI Agents SDK**：code-first agent runtime，含 tools、handoffs、guardrails、sessions、tracing。
 
 **典型例子**
 
@@ -70,13 +59,6 @@
 * 任務交接可能靠 workflow、handoff、artifact，不只是同一 agent 自己想下一步。
 * 適合長任務、跨角色任務、要可重試 / 可觀測 / 可回滾的流程。
 
-**代表性工具**
-
-* **LangGraph**：低階 orchestration framework，適合顯式 workflow / stateful agent systems。 
-* **CrewAI**：強調 cre​​ws / flows / collaborative multi-agent automation。
-* **OpenAI Agents SDK**：可用 handoffs / agents-as-tools 建 multi-agent workflows。 
-* **Codex subagents**：Codex 可在你明確要求時 spawn specialized subagents 並平行執行。
-* **Claude Code 的新動態 workflows / 後台多 agents** 也開始出現，但主要仍是產品內建 orchestration，而不是像 LangGraph 那樣由你完全顯式控制。
 
 **典型例子**
 
@@ -115,9 +97,9 @@
 
 ## Multi-agent
 
-* **LangGraph**：白盒 orchestration。 
-* **OpenAI Agents SDK handoffs**：偏 code-first multi-agent。 
-* **Codex subagents**：偏黑盒 / 半黑盒 subagents。 
+* **LangGraph**：白盒 orchestration。 需在內部自行分派角色、並為每個角色選擇使用的agent。
+* **Claude Cowork**: 能自主規劃任務，分派給不同agent執行。偏黑盒 / 半黑盒 subagents。 
+* **Codex subagents**：能自主規劃任務，分派給不同agent執行。偏黑盒 / 半黑盒 subagents。 
 
 ***
 
