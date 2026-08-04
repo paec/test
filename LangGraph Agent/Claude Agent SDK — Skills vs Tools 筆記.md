@@ -120,6 +120,9 @@ Skills 通常會被注入到 system prompt/context layer
 ***
 
 # Claude Agent SDK Runtime 概念
+>> claude agent sdk 是anthropic開放給我們，在claude agent harness的核心黑盒之上，打造我們自己的agent。 我們可以拿他把agent包成一個node
+>> 然後用langgraph跟其他node做串接。 我們能控制: Prompt, System Prompt ,Tool ,Skill ,MCP ,Memory來源 ,Context注入..等等
+>> 這就像我們可以用claude cowork (UI, Low-code)，去控制那些東西，打造出各種符合我們某些工作任務的agent。
 
 ```text
 User Request
