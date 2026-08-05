@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover"
+  >
+  <meta name="theme-color" content="#075985">
+
+  <title>目的地旅遊規劃｜手機旅遊版</title>
+
+  <style>
+    /* 1. Design Tokens */
+    :root {
+      --navy: #073763;
+      --blue: #075fae;
+      --teal: #078577;
+      --ink: #10243e;
+      --muted: #5d6c7d;
+      --bg: #eef5f8;
+      --card: #ffffff;
+      --line: #d9e7ef;
+      --accent: #075fae;
+      --shadow: 0 8px 24px rgba(17, 54, 76, 0.12);
+    }
+
+    /* 2. Reset 與共用樣式 */
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family:
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        "Noto Sans TC",
+        sans-serif;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    /* 3. Hero */
+    .hero {
+      color: white;
+      background:
+        linear-gradient(
+          125deg,
+          rgba(4, 52, 100, 0.96),
+          rgba(3, 121, 146, 0.82)
+        ),
+        var(--hero-image) center / cover;
+    }
+
+    /* 4. Sticky Tabs */
+    .sticky-tabs {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    /* 5. 行程卡片 */
+    .plan {
+      display: none;
+    }
+
+    .plan.active {
+      display: block;
+    }
+
+    .route-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    /* 6. 景點卡片 */
+    .highlight-card {
+      overflow: hidden;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    /* 7. 底部導覽 */
+    .bottom-nav {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.95);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    /* 8. Mobile */
+    @media (max-width: 760px) {
+      .route-card {
+        grid-template-columns: 58px 1fr;
+      }
+
+      .highlight-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header id="top" class="hero">
+    <!-- 由 JavaScript 產生 Hero -->
+  </header>
+
+  <nav class="sticky-tabs">
+    <div id="topTabs"></div>
+  </nav>
+
+  <main id="planContainer">
+    <!-- 由 JavaScript 產生各行程 -->
+  </main>
+
+  <nav class="bottom-nav">
+    <div id="bottomTabs"></div>
+  </nav>
+
+  <script>
+    /*
+     * 1. travelData
+     * 2. renderHero()
+     * 3. renderTabs()
+     * 4. renderPlans()
+     * 5. showPlan()
+     * 6. 初始化
+     */
+
+    const travelData = {
+      destination: {},
+      tabs: []
+    };
+
+    function renderHero() {
+      // 讀取 travelData.destination
+      // 產生標題、摘要與  背景圖片 
+    }
+
+    function renderTabs() {
+      // 根據 travelData.tabs 產生頂部與底部按鈕
+    }
+
+    function renderPlans() {
+      // 依序產生：
+      // summary
+      // route
+      // highlights
+      // notes
+    }
+
+    function showPlan(id, updateHash = true) {
+      document.querySelectorAll(".plan").forEach((element) => {
+        element.classList.toggle("active", element.id === id);
+      });
+
+      document.querySelectorAll("[data-target]").forEach((button) => {
+        button.classList.toggle(
+          "active",
+          button.dataset.target === id
+        );
+      });
+
+      if (updateHash) {
+        history.replaceState(null, "", `#${id}`);
+      }
+    }
+
+    function init() {
+      renderHero();
+      renderTabs();
+      renderPlans();
+
+      const requestedTab = location.hash.slice(1);
+      const availableTabs = travelData.tabs.map((tab) => tab.id);
+
+      const initialTab = availableTabs.includes(requestedTab)
+        ? requestedTab
+        : travelData.tabs[0].id;
+
+      showPlan(initialTab, false);
+    }
+
+    init();
+  </script>
+</body>
+</html>
